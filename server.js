@@ -11,9 +11,20 @@ Deno.serve(async (request) => {
         }else if(request.method === "POST"){
             const requestJson = await request.json();  // リクエストのペイロードを取得
             const nextWord = requestJson["nextWord"];
-            if(previousWord.slice(-1) === nextWord.slice(0,1)){
-                previousWord = nextWord;
-            }else{
+            // 不正な入力を弾く
+            // 最後の文字が"ん"で終わるとき
+            if(nextWord.slice(-1) === "ん"){
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "最後の文字が\"ん\"で終わっています",
+                        "errorCode": "10001"
+                    }),{
+                        status: 400,
+                        headers: {"Content-Type": "application/json; charset=utf-8"}
+                    }
+                );
+            // 最後と最初の文字が一致していないとき
+            }else if(previousWord.slice(-1) !== nextWord.slice(0,1)){
                 return new Response(
                     JSON.stringify({
                         "errorMessage": "しりとりが成立していません",
@@ -24,6 +35,7 @@ Deno.serve(async (request) => {
                     }
                 );
             }
+            previousWord = nextWord;
             return new Response(previousWord);
         }
     }
