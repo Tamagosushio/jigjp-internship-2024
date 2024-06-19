@@ -1,6 +1,8 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
 let previousWord = "しりとり";
+const historyWord = new Set();
+historyWord.add(previousWord);
 
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
@@ -12,19 +14,8 @@ Deno.serve(async (request) => {
             const requestJson = await request.json();  // リクエストのペイロードを取得
             const nextWord = requestJson["nextWord"];
             // 不正な入力を弾く
-            // 最後の文字が"ん"で終わるとき
-            if(nextWord.slice(-1) === "ん"){
-                return new Response(
-                    JSON.stringify({
-                        "errorMessage": "最後の文字が\"ん\"で終わっています",
-                        "errorCode": "10001"
-                    }),{
-                        status: 400,
-                        headers: {"Content-Type": "application/json; charset=utf-8"}
-                    }
-                );
             // 最後と最初の文字が一致していないとき
-            }else if(previousWord.slice(-1) !== nextWord.slice(0,1)){
+            if(previousWord.slice(-1) !== nextWord.slice(0,1)){
                 return new Response(
                     JSON.stringify({
                         "errorMessage": "しりとりが成立していません",
@@ -34,7 +25,30 @@ Deno.serve(async (request) => {
                         headers: {"Content-Type": "application/json; charset=utf-8"}
                     }
                 );
+            // 最後の文字が"ん"で終わるとき
+            }else if(nextWord.slice(-1) === "ん"){
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "最後の文字が\"ん\"で終わっています",
+                        "errorCode": "10001"
+                    }),{
+                        status: 400,
+                        headers: {"Content-Type": "application/json; charset=utf-8"}
+                    }
+                );
+            // 過去に出た単語が入力されたとき
+            }else if(historyWord.has(nextWord)){
+                return new Response(
+                    JSON.stringify({
+                        "errorMessage": "過去に出ている単語です",
+                        "errorCode": "10001"
+                    }),{
+                        status: 400,
+                        headers: {"Content-Type": "application/json; charset=utf-8"}
+                    }
+                );
             }
+            historyWord.add(nextWord);
             previousWord = nextWord;
             return new Response(previousWord);
         }
