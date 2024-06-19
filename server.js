@@ -4,6 +4,12 @@ let previousWord = "しりとり";
 const historyWord = new Set();
 historyWord.add(previousWord);
 
+function initialize(){
+    previousWord = "しりとり"
+    historyWord.clear()
+    historyWord.add(previousWord);
+}
+
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
     console.log(`pathname: ${pathname}`);
@@ -30,7 +36,7 @@ Deno.serve(async (request) => {
                 return new Response(
                     JSON.stringify({
                         "errorMessage": "最後の文字が\"ん\"で終わっています",
-                        "errorCode": "10001"
+                        "errorCode": "10002"
                     }),{
                         status: 400,
                         headers: {"Content-Type": "application/json; charset=utf-8"}
@@ -41,7 +47,7 @@ Deno.serve(async (request) => {
                 return new Response(
                     JSON.stringify({
                         "errorMessage": "過去に出ている単語です",
-                        "errorCode": "10001"
+                        "errorCode": "10003"
                     }),{
                         status: 400,
                         headers: {"Content-Type": "application/json; charset=utf-8"}
