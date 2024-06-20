@@ -1,15 +1,8 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
 // private内のcsvファイルを読み込む
-const csvText = await Deno.readTextFile("./private/initialWords.csv");
-const initialWords = csvText.split(",");
-// 候補の単語の中からランダムに初期単語をピック
-let previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
-const historyWord = new Set();
-historyWord.add(previousWord);
-
-// ひらがなのみを含む正規表現
-const regexHiragana = new RegExp("[ぁ-ん]+");
+const initialWordsText = await Deno.readTextFile("./private/initialWords.csv");
+const initialWords = initialWordsText.split(",");
 
 // 初期化
 function initialize(){
@@ -29,6 +22,31 @@ function makeErrorResponse(errorMessage, errorCode){
     });
 }
 
+// ひらがなのみを含む正規表現
+const regexHiragana = new RegExp(/[\u30a1-\u30f6]/g);
+// ひらがなをカタカナに変換
+function hiraToKana(str){
+    return str.replace(regexHiragana, function(match) {
+        const char = match.charCodeAt(0) - 0x60;
+        return String.fromCharCode(char);
+    });
+}
+// ひらがなとカタカナを区別せずに等しいか判定
+function equalCharKanaHira(c1, c2){
+    c1 = hiraToKana(c1);
+    c2 = hiraToKana(c2);
+    return c1 === c2;
+}
+
+
+// 候補の単語の中からランダムに初期単語をピック
+let previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
+
+// 履歴はカタカナで固定
+const historyWord = new Set(hiraToKana(previousWord));
+historyWord.add(previousWord);
+
+
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
     console.log(`pathname: ${pathname}`);
@@ -39,20 +57,17 @@ Deno.serve(async (request) => {
             const requestJson = await request.json();  // リクエストのペイロードを取得
             const nextWord = requestJson["nextWord"];
             // 不正な入力を弾く
-            // ひらがな以外が入力されたとき
-            if(!regexHiragana.test(nextWord)){
-                return makeErrorResponse("ひらがな以外が含まれています", "10004")
             // 最後と最初の文字が一致していないとき
-            }else if(previousWord.slice(-1) !== nextWord.slice(0,1)){
+            if(!equalCharKanaHira(previousWord.slice(-1), nextWord.slice(0,1))){
                 return makeErrorResponse("しりとりが成立していません", "10001");
             // 最後の文字が"ん"で終わるとき
-            }else if(nextWord.slice(-1) === "ん"){
-                return makeErrorResponse("最後の文字が\"ん\"で終わっています", "10002");
+            }else if(nextWord.slice(-1) === "ん" || nextWord.slice(-1) === "ン"){
+                return makeErrorResponse("最後の文字が\"ん\"もしくは\"ン\"で終わっています", "10002");
             // 過去に出た単語が入力されたとき
             }else if(historyWord.has(nextWord)){
                 return makeErrorResponse("過去に出ている単語です", "10003");
             }
-            historyWord.add(nextWord);
+            historyWord.add(hiraToKana(nextWord));
             previousWord = nextWord;
             return new Response(previousWord);
         }
