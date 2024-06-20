@@ -40,8 +40,7 @@
                 const errorObj = JSON.parse(errorJson);
                 const errorCode = errorObj["errorCode"];
                 alert(errorObj["errorMessage"]);
-                if(errorCode === "10001"){  // 最後と最初の文字が一致しない
-                }else if(errorCode === "10002"){  // 最後の文字が"ん"で終わる
+                if(errorCode === "10002"){  // 最後の文字が"ん"で終わる
                     window.location.href = "./gameOver.html";
                 }else if(errorCode === "10003"){  // 過去に出てる単語
                     window.location.href = "./gameOver.html";

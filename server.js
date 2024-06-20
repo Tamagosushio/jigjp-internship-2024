@@ -8,11 +8,25 @@ let previousWord = initialWords[Math.floor(Math.random() * initialWords.length)]
 const historyWord = new Set();
 historyWord.add(previousWord);
 
+// ひらがなのみを含む正規表現
+const regexHiragana = new RegExp("[ぁ-ん]+");
+
 // 初期化
 function initialize(){
     historyWord.clear()
     previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
     historyWord.add(previousWord);
+}
+// エラーレスポンス生成
+function makeErrorResponse(errorMessage, errorCode){
+    return new Response(
+        JSON.stringify({
+        "errorMessage": errorMessage,
+        "errorCode": errorCode
+    }),{
+        status: 400,
+        headers: {"Content-Type": "application/json; charset=utf-8"}
+    });
 }
 
 Deno.serve(async (request) => {
@@ -25,39 +39,18 @@ Deno.serve(async (request) => {
             const requestJson = await request.json();  // リクエストのペイロードを取得
             const nextWord = requestJson["nextWord"];
             // 不正な入力を弾く
+            // ひらがな以外が入力されたとき
+            if(!regexHiragana.test(nextWord)){
+                return makeErrorResponse("ひらがな以外が含まれています", "10004")
             // 最後と最初の文字が一致していないとき
-            if(previousWord.slice(-1) !== nextWord.slice(0,1)){
-                return new Response(
-                    JSON.stringify({
-                        "errorMessage": "しりとりが成立していません",
-                        "errorCode": "10001"
-                    }),{
-                        status: 400,
-                        headers: {"Content-Type": "application/json; charset=utf-8"}
-                    }
-                );
+            }else if(previousWord.slice(-1) !== nextWord.slice(0,1)){
+                return makeErrorResponse("しりとりが成立していません", "10001");
             // 最後の文字が"ん"で終わるとき
             }else if(nextWord.slice(-1) === "ん"){
-                return new Response(
-                    JSON.stringify({
-                        "errorMessage": "最後の文字が\"ん\"で終わっています",
-                        "errorCode": "10002"
-                    }),{
-                        status: 400,
-                        headers: {"Content-Type": "application/json; charset=utf-8"}
-                    }
-                );
+                return makeErrorResponse("最後の文字が\"ん\"で終わっています", "10002");
             // 過去に出た単語が入力されたとき
             }else if(historyWord.has(nextWord)){
-                return new Response(
-                    JSON.stringify({
-                        "errorMessage": "過去に出ている単語です",
-                        "errorCode": "10003"
-                    }),{
-                        status: 400,
-                        headers: {"Content-Type": "application/json; charset=utf-8"}
-                    }
-                );
+                return makeErrorResponse("過去に出ている単語です", "10003");
             }
             historyWord.add(nextWord);
             previousWord = nextWord;
