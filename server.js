@@ -8,7 +8,7 @@ const initialWords = initialWordsText.split(",");
 function initialize(){
     historyWord.clear()
     previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
-    historyWord.add(previousWord);
+    addHistory(previousWord);
 }
 // エラーレスポンス生成
 function makeErrorResponse(errorMessage, errorCode){
@@ -23,14 +23,27 @@ function makeErrorResponse(errorMessage, errorCode){
 }
 
 // ひらがなのみを含む正規表現
-const regexHiragana = new RegExp(/[\u30a1-\u30f6]/g);
+const regexHiragana = new RegExp(/[\u3041-\u3096]/g);
 // ひらがなをカタカナに変換
 function hiraToKana(str){
     return str.replace(regexHiragana, function(match) {
-        const char = match.charCodeAt(0) - 0x60;
+        const char = match.charCodeAt(0) + 0x60;
         return String.fromCharCode(char);
     });
 }
+
+
+// 履歴はカタカナで固定
+// 履歴に追加
+function addHistory(str){
+    historyWord.add(hiraToKana(str));
+}
+// 履歴に存在するか
+function hasHistory(str){
+    return historyWord.has(hiraToKana(str));
+}
+
+
 // ひらがなとカタカナを区別せずに等しいか判定
 function equalCharKanaHira(c1, c2){
     c1 = hiraToKana(c1);
@@ -41,11 +54,8 @@ function equalCharKanaHira(c1, c2){
 
 // 候補の単語の中からランダムに初期単語をピック
 let previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
-
-// 履歴はカタカナで固定
-const historyWord = new Set(hiraToKana(previousWord));
-historyWord.add(previousWord);
-
+const historyWord = new Set();
+addHistory(previousWord);
 
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
@@ -64,10 +74,10 @@ Deno.serve(async (request) => {
             }else if(nextWord.slice(-1) === "ん" || nextWord.slice(-1) === "ン"){
                 return makeErrorResponse("最後の文字が\"ん\"もしくは\"ン\"で終わっています", "10002");
             // 過去に出た単語が入力されたとき
-            }else if(historyWord.has(nextWord)){
+            }else if(hasHistory(nextWord)){
                 return makeErrorResponse("過去に出ている単語です", "10003");
             }
-            historyWord.add(hiraToKana(nextWord));
+            addHistory(nextWord);
             previousWord = nextWord;
             return new Response(previousWord);
         }
