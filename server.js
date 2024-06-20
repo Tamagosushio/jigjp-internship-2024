@@ -1,12 +1,17 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
-let previousWord = "しりとり";
+// private内のcsvファイルを読み込む
+const csvText = await Deno.readTextFile("./private/initialWords.csv");
+const initialWords = csvText.split(",");
+// 候補の単語の中からランダムに初期単語をピック
+let previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
 const historyWord = new Set();
 historyWord.add(previousWord);
 
+// 初期化
 function initialize(){
-    previousWord = "しりとり"
     historyWord.clear()
+    previousWord = initialWords[Math.floor(Math.random() * initialWords.length)];
     historyWord.add(previousWord);
 }
 
@@ -59,7 +64,7 @@ Deno.serve(async (request) => {
             return new Response(previousWord);
         }
     }else if(request.method === "POST" && pathname === "/reset"){
-        initialize()
+        await initialize()
         return new Response(previousWord);
     }
     return serveDir(
