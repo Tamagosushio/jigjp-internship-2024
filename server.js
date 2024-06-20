@@ -99,6 +99,11 @@ Deno.serve(async (request) => {
             if(!equalCharKanaHira(getPreviousWord().slice(-1), nextWord.slice(0,1))){
                 return makeErrorResponse("しりとりが成立していません", "10001");
             }
+            // 存在しない単語が入力されたとき
+            const nextWordIndex = findWordIndex(nextWord);
+            if(nextWordIndex === -1){
+                return makeErrorResponse("存在しない単語です", "10004");
+            }
             // 最後の文字が"ん"で終わるとき
             if(nextWord.slice(-1) === "ん" || nextWord.slice(-1) === "ン"){
                 return makeErrorResponse("最後の文字が\"ん\"もしくは\"ン\"で終わっています", "10002");
@@ -106,11 +111,6 @@ Deno.serve(async (request) => {
             // 過去に出た単語が入力されたとき
             if(hasHistory(nextWord)){
                 return makeErrorResponse("過去に出ている単語です", "10003");
-            }
-            // 存在しない単語が入力されたとき
-            const nextWordIndex = findWordIndex(nextWord);
-            if(nextWordIndex === -1){
-                return makeErrorResponse("存在しない単語です", "10004");
             }
             setPreviousWordIdx(nextWordIndex);
             addHistory(getPreviousWord());
