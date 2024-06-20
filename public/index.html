@@ -21,6 +21,9 @@
         }
 
         window.onload = async (event) => {
+            const response = await fetch("/reset", {
+                method: "POST"
+            });
             const respose = await fetch("/shiritori", {method: "GET"});
             setPreviousWord(respose);
         }
