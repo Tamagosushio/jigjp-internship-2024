@@ -8,6 +8,7 @@ const regexHiragana = new RegExp(/[\u3041-\u3096]/g);
 // 実在する単語リストを読み込む
 const existingWordsText = await Deno.readTextFile("./private/existingWords.csv");
 const existingWords = existingWordsText.split("\n").map((line) => {
+    line = line.replace("\r", "");
     return line.split(",");
 });
 // 変数を定義して初期化
