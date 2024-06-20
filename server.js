@@ -58,6 +58,9 @@ Deno.serve(async (request) => {
             previousWord = nextWord;
             return new Response(previousWord);
         }
+    }else if(request.method === "POST" && pathname === "/reset"){
+        initialize()
+        return new Response(previousWord);
     }
     return serveDir(
         request, {

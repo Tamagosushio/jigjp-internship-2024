@@ -11,12 +11,18 @@
     <p id="previousWord"></p>
     <input id="nextWordInput" type="text">
     <button id="nextWordSendButton">送信</button>
+    <button id="resetSendButton">リセット</button>
     <script>
-        window.onload = async (event) => {
-            const respose = await fetch("/shiritori", {method: "GET"});
-            const previousWord = await respose.text();
+        async function setPreviousWord(response){
+            const previousWord = await response.text();
             const paragraph = document.querySelector("#previousWord");
             paragraph.innerHTML = `前の単語: ${previousWord}`;
+            nextWordInput.value = "";
+        }
+
+        window.onload = async (event) => {
+            const respose = await fetch("/shiritori", {method: "GET"});
+            setPreviousWord(respose);
         }
         document.querySelector("#nextWordSendButton").onclick = async(event) => {
             const nextWordInput = document.querySelector("#nextWordInput");
@@ -38,10 +44,13 @@
                     window.location.href = "./gameOver.html";
                 }
             }
-            const previousWord = await response.text();
-            const paragraph = document.querySelector("#previousWord");
-            paragraph.innerHTML = `前の単語: ${previousWord}`;
-            nextWordInput.value = "";
+            setPreviousWord(response);
+        }
+        document.querySelector("#resetSendButton").onclick = async(event) => {
+            const response = await fetch("/reset", {
+                method: "POST"
+            });
+            setPreviousWord(response);
         }
     </script>
 </body>
