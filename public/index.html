@@ -12,6 +12,10 @@
     <input id="nextWordInput" type="text">
     <button id="nextWordSendButton">送信</button>
     <button id="resetSendButton">リセット</button>
+    <p>
+        単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。
+        (2024年6月20日 閲覧・ダウンロード)
+    </p>
     <script>
         async function setPreviousWord(response){
             const previousWord = await response.text();
