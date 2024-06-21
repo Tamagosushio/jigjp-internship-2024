@@ -1,6 +1,5 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
-
 // 履歴保持
 const historyWord = new Set();
 // ひらがなのみを含む正規表現
@@ -12,13 +11,13 @@ const existingWords = existingWordsText.split("\n").map((line) => {
     return line.split(",");
 });
 // 変数を定義して初期化
-let previousWordIdx = 0
+let previousWordIdx;
 initialize()
 
 // 初期化
 function initialize(){
-    historyWord.clear()
-    do {    
+    historyWord.clear();
+    do {
         setPreviousWordIdx(Math.floor(Math.random() * existingWords.length));
     } while (getPreviousWord().slice(-1) === "ん" || getPreviousWord().slice(-1) === "ン");
     addHistory(getPreviousWord());
@@ -118,7 +117,7 @@ Deno.serve(async (request) => {
             return new Response(`${getPreviousWordDisplay()}(${getPreviousWord()})`);
         }
     }else if(request.method === "POST" && pathname === "/reset"){
-        await initialize()
+        initialize()
         return new Response(`${getPreviousWordDisplay()}(${getPreviousWord()})`);   
     }
     return serveDir(

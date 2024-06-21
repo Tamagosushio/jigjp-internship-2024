@@ -12,24 +12,29 @@
     <input id="nextWordInput" type="text">
     <button id="nextWordSendButton">送信</button>
     <button id="resetSendButton">リセット</button>
+    <ol id="historyWord"></ol>
     <p>
-        単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。
+        単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。<br>
         (2024年6月20日 閲覧・ダウンロード)
     </p>
     <script>
-        async function setPreviousWord(response){
-            const previousWord = await response.text();
-            const paragraph = document.querySelector("#previousWord");
-            paragraph.innerHTML = `前の単語: ${previousWord}`;
+
+        async function setPreviousWord(previousWord){
+            const paragraphPreviousWord = document.querySelector("#previousWord");
+            paragraphPreviousWord.innerHTML = `前の単語: ${previousWord}`;
             nextWordInput.value = "";
+            const list = document.getElementById("historyWord");
+            const element = document.createElement("li");
+            element.innerHTML = `${previousWord}`;
+            list.appendChild(element);
         }
 
         window.onload = async (event) => {
             const response = await fetch("/reset", {
                 method: "POST"
             });
-            const respose = await fetch("/shiritori", {method: "GET"});
-            setPreviousWord(respose);
+            console.log(response);
+            setPreviousWord(await response.text());
         }
         document.querySelector("#nextWordSendButton").onclick = async(event) => {
             const nextWordInput = document.querySelector("#nextWordInput");
@@ -50,13 +55,16 @@
                     window.location.href = "./gameOver.html";
                 }
             }
-            setPreviousWord(response);
+            const previousWord = await response.text();
+            setPreviousWord(previousWord);
         }
         document.querySelector("#resetSendButton").onclick = async(event) => {
             const response = await fetch("/reset", {
                 method: "POST"
             });
-            setPreviousWord(response);
+            const list = document.getElementById("historyWord");
+            list.innerHTML = "";
+            setPreviousWord(await response.text());
         }
     </script>
 </body>
