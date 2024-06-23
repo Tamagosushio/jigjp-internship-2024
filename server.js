@@ -99,7 +99,6 @@ function isShiritoriOk(previousWord, nextWord){
 }
 
 
-
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
     console.log(`pathname: ${pathname}`);

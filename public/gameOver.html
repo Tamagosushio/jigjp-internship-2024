@@ -3,12 +3,14 @@
 
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
 </head>
 
 <body>
-    <h1>Game Over</h1>
-    <button id="returnShiritori">しりとりに戻る</button>
+    <div style="text-align:center;" class="box">
+        <h1 class="title is-1">Game Over</h1>
+        <button id="returnShiritori" class="button is-success is-medium">しりとりに戻る</button>
+    </div>
     <script>
         document.querySelector("#returnShiritori").onclick = async(event) => {
             const response = await fetch("/reset", {

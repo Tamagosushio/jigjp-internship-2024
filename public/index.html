@@ -3,24 +3,32 @@
 
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
 </head>
 
 <body>
-    <h1>しりとり</h1>
-    <p id="previousWord"></p>
-    <input id="nextWordInput" type="text">
-    <button id="nextWordSendButton">送信</button>
-    <button id="resetSendButton">リセット</button>
-    <ol id="historyWord"></ol>
-    <p>
-        ッ・ャ・ュ・ョで終わる単語はツ・ヤ・ユ・ヨから始められます<br>
-        ーで終わる単語はその一つ前の文字から始められます
-    </p>
-    <p>
-        単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。<br>
-        (2024年6月20日 閲覧・ダウンロード)
-    </p>
+    <div style="text-align:center; box-shadow:none;" class="box">   
+        <div class="block">
+            <h1 class="title is-1">しりとり</h1>
+        </div>
+        <div id="previousWord" class="block title is-4"></div>
+        <div class="block">        
+            <input id="nextWordInput" style="text-align:center;" type="text" class="input is-large">
+        </div>
+        <div class="block">
+            <button id="nextWordSendButton" class="button is-success is-large"><strong>送信</strong></button>
+            <button id="resetSendButton" class="button is-danger is-small">リセット</button><br>
+        </div>
+        <div class="box">
+            <div style="text-align:left; display:inline-block;">
+                <ol id="historyWord"></ol>
+            </div>
+        </div>
+        <div class="block">
+            ッ・ャ・ュ・ョで終わる単語はツ・ヤ・ユ・ヨから始められます<br>
+            ーで終わる単語はその一つ前の文字から始められます<br>
+        </div>
+    </div>
     <script>
 
         async function setPreviousWord(previousWord){
@@ -63,6 +71,9 @@
             setPreviousWord(previousWord);
         }
         document.querySelector("#resetSendButton").onclick = async(event) => {
+            if(!window.confirm("本当にしりとりを仕切り直しますか？")){
+                return;
+            }
             const response = await fetch("/reset", {
                 method: "POST"
             });
@@ -72,6 +83,11 @@
         }
     </script>
 </body>
+
+<footer style="text-align: center;" class="footer">
+    単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。<br>
+    (2024年6月20日 閲覧・ダウンロード)
+</footer>
 
 </html>
 
