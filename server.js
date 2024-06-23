@@ -74,14 +74,29 @@ function hasHistory(str){
     return historyWord.has(hiraToKana(str));
 }
 
-// ひらがなとカタカナを区別せずに等しいか判定
+
+// 拗音の対応付け
+const youonDict = {
+    "ッ":"ツ", "ャ":"ヤ", "ュ":"ユ", "ョ":"ヨ"
+}
+// ひらがなとカタカナ、拗音を区別せずに等しいか判定
 function equalCharKanaHira(c1, c2){
+    if(youonDict[c1] !== undefined) c1 = youonDict[c1];
+    if(youonDict[c2] !== undefined) c2 = youonDict[c2];
     c1 = hiraToKana(c1);
     c2 = hiraToKana(c2);
     return c1 === c2;
 }
 
-
+function isShiritoriOk(previousWord, nextWord){
+    const previousWordTail = previousWord.slice(-1);
+    if(previousWordTail === "ー" || previousWordTail === "―"){
+        previousWord = previousWord.slice(0, -1);
+    }
+    return (
+        equalCharKanaHira(previousWord.slice(-1), nextWord.slice(0,1))
+    );
+}
 
 
 
@@ -96,7 +111,7 @@ Deno.serve(async (request) => {
             const nextWord = requestJson["nextWord"];
             // 不正な入力を弾く
             // 最後と最初の文字が一致していないとき
-            if(!equalCharKanaHira(getPreviousWord().slice(-1), nextWord.slice(0,1))){
+            if(!isShiritoriOk(getPreviousWord(), nextWord)){
                 return makeErrorResponse("しりとりが成立していません", "10001");
             }
             // 存在しない単語が入力されたとき
