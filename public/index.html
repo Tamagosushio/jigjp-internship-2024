@@ -40,12 +40,33 @@
             element.innerHTML = `${previousWord}`;
             list.appendChild(element);
         }
+        function getRandomString(length){
+            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            let res = "";
+            for(let i = 0; i < length; i++){
+                res += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return res;
+        }
+        function getCookieItem(key){
+            const cookie = document.cookie.split(";");
+            let res = undefined;
+            cookie.forEach((value) => {
+                const content = value.split("=");
+                if(content[0] === key) res = content[1];
+            });
+            return res;
+        }
 
         window.onload = async (event) => {
+            if(getCookieItem("id") === undefined){
+                document.cookie = `id=${getRandomString(64)};max-age=3600;`;
+            }
             const response = await fetch("/reset", {
-                method: "POST"
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({id: getCookieItem("id")})
             });
-            console.log(response);
             setPreviousWord(await response.text());
         }
         document.querySelector("#nextWordSendButton").onclick = async(event) => {
@@ -54,7 +75,10 @@
             const response = await fetch("/shiritori", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({nextWord: nextWordInputText})
+                body: JSON.stringify({
+                    id: getCookieItem("id"),
+                    nextWord: nextWordInputText
+                })
             });
             if(response.status !== 200){
                 const errorJson = await response.text();
@@ -75,7 +99,9 @@
                 return;
             }
             const response = await fetch("/reset", {
-                method: "POST"
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({id:getCookieItem("id")})
             });
             const list = document.getElementById("historyWord");
             list.innerHTML = "";
@@ -85,8 +111,10 @@
 </body>
 
 <footer style="text-align: center;" class="footer">
+    個々にしりとりを可能にするためにcookieを使用しています。<br>
+    <br>
     単語リストは<a href="http://www17408ui.sakura.ne.jp/tatsum/database.html">松下言語学習ラボ様</a>からお借りしました。<br>
-    (2024年6月20日 閲覧・ダウンロード)
+    (2024年6月20日 閲覧・ダウンロード)<br>
 </footer>
 
 </html>

@@ -1,7 +1,7 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
 // 履歴保持
-const historyWord = new Set();
+const historyWord = {};
 // ひらがなのみを含む正規表現
 const regexHiragana = new RegExp(/[\u3041-\u3096]/g);
 // 実在する単語リストを読み込む
@@ -11,29 +11,30 @@ const existingWords = existingWordsText.split("\n").map((line) => {
     return line.split(",");
 });
 // 変数を定義して初期化
-let previousWordIdx;
+const previousWordIdx = {};
 initialize()
 
 // 初期化
-function initialize(){
-    historyWord.clear();
+function initialize(id){
+    if(historyWord[id] === undefined) historyWord[id] = new Set();
+    else historyWord[id].clear();
     do {
-        setPreviousWordIdx(Math.floor(Math.random() * existingWords.length));
-    } while (getPreviousWord().slice(-1) === "ん" || getPreviousWord().slice(-1) === "ン");
-    addHistory(getPreviousWord());
+        setPreviousWordIdx(id, Math.floor(Math.random() * existingWords.length));
+    } while (getPreviousWord(id).slice(-1) === "ん" || getPreviousWord(id).slice(-1) === "ン");
+    addHistory(id, getPreviousWord(id));
 }
 
 // 前の単語を設定
-function setPreviousWordIdx(num){
-    previousWordIdx = num;
+function setPreviousWordIdx(id, num){
+    previousWordIdx[id] = num;
 }
 // 表示用の単語を取得
-function getPreviousWordDisplay(){
-    return existingWords[previousWordIdx][0];
+function getPreviousWordDisplay(id){
+    return existingWords[previousWordIdx[id]][0];
 }
 // 内部用の単語を取得
-function getPreviousWord(){
-    return existingWords[previousWordIdx][1];
+function getPreviousWord(id){
+    return existingWords[previousWordIdx[id]][1];
 }
 
 // 入力した単語が存在するか
@@ -66,12 +67,12 @@ function hiraToKana(str){
 
 // 履歴はカタカナで固定
 // 履歴に追加
-function addHistory(str){
-    historyWord.add(hiraToKana(str));
+function addHistory(id, str){
+    historyWord[id].add(hiraToKana(str));
 }
 // 履歴に存在するか
-function hasHistory(str){
-    return historyWord.has(hiraToKana(str));
+function hasHistory(id, str){
+    return historyWord[id].has(hiraToKana(str));
 }
 
 
@@ -108,9 +109,10 @@ Deno.serve(async (request) => {
         }else if(request.method === "POST"){
             const requestJson = await request.json();  // リクエストのペイロードを取得
             const nextWord = requestJson["nextWord"];
+            const id = requestJson["id"];
             // 不正な入力を弾く
             // 最後と最初の文字が一致していないとき
-            if(!isShiritoriOk(getPreviousWord(), nextWord)){
+            if(!isShiritoriOk(getPreviousWord(id), nextWord)){
                 return makeErrorResponse("しりとりが成立していません", "10001");
             }
             // 存在しない単語が入力されたとき
@@ -123,16 +125,18 @@ Deno.serve(async (request) => {
                 return makeErrorResponse("最後の文字が\"ん\"もしくは\"ン\"で終わっています", "10002");
             }
             // 過去に出た単語が入力されたとき
-            if(hasHistory(nextWord)){
+            if(hasHistory(id, nextWord)){
                 return makeErrorResponse("過去に出ている単語です", "10003");
             }
-            setPreviousWordIdx(nextWordIndex);
-            addHistory(getPreviousWord());
-            return new Response(`${getPreviousWordDisplay()}(${getPreviousWord()})`);
+            setPreviousWordIdx(id, nextWordIndex);
+            addHistory(id, getPreviousWord(id));
+            return new Response(`${getPreviousWordDisplay(id)}(${getPreviousWord(id)})`);
         }
     }else if(request.method === "POST" && pathname === "/reset"){
-        initialize()
-        return new Response(`${getPreviousWordDisplay()}(${getPreviousWord()})`);   
+        const requestJson = await request.json();
+        const id = requestJson["id"];
+        initialize(id);
+        return new Response(`${getPreviousWordDisplay(id)}(${getPreviousWord(id)})`);   
     }
     return serveDir(
         request, {
