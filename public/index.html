@@ -16,7 +16,7 @@
             <input id="nextWordInput" style="text-align:center;" type="text" class="input is-large">
         </div>
         <div class="block">
-            <button id="nextWordSendButton" class="button is-success is-large"><strong>送信</strong></button>
+            <button id="nextWordSendButton" type="submit" class="button is-success is-large"><strong>送信</strong></button>
         </div>
         <div class="box">
             <div style="text-align:left; display:inline-block;">
@@ -31,85 +31,7 @@
             ーで終わる単語はその一つ前の文字から始められます<br>
         </div>
     </div>
-    <script>
-
-        async function setPreviousWord(previousWord){
-            const paragraphPreviousWord = document.querySelector("#previousWord");
-            paragraphPreviousWord.innerHTML = `前の単語: ${previousWord}`;
-            nextWordInput.value = "";
-            const list = document.getElementById("historyWord");
-            const element = document.createElement("li");
-            element.innerHTML = `${previousWord}`;
-            list.appendChild(element);
-        }
-        function getRandomString(length){
-            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-            let res = "";
-            for(let i = 0; i < length; i++){
-                res += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return res;
-        }
-        function getCookieItem(key){
-            const cookie = document.cookie.split(";");
-            let res = undefined;
-            cookie.forEach((value) => {
-                const content = value.split("=");
-                if(content[0] === key) res = content[1];
-            });
-            return res;
-        }
-
-        window.onload = async (event) => {
-            if(getCookieItem("id") === undefined){
-                document.cookie = `id=${getRandomString(64)};max-age=3600;`;
-            }
-            const response = await fetch("/reset", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({id: getCookieItem("id")})
-            });
-            setPreviousWord(await response.text());
-        }
-        document.querySelector("#nextWordSendButton").onclick = async(event) => {
-            const nextWordInput = document.querySelector("#nextWordInput");
-            const nextWordInputText = nextWordInput.value;
-            const response = await fetch("/shiritori", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    id: getCookieItem("id"),
-                    nextWord: nextWordInputText
-                })
-            });
-            if(response.status !== 200){
-                const errorJson = await response.text();
-                const errorObj = JSON.parse(errorJson);
-                const errorCode = errorObj["errorCode"];
-                alert(errorObj["errorMessage"]);
-                if(errorCode === "10002"){  // 最後の文字が"ん"で終わる
-                    window.location.href = "./gameOver.html";
-                }else if(errorCode === "10003"){  // 過去に出てる単語
-                    window.location.href = "./gameOver.html";
-                }
-            }
-            const previousWord = await response.text();
-            setPreviousWord(previousWord);
-        }
-        document.querySelector("#resetSendButton").onclick = async(event) => {
-            if(!window.confirm("本当にしりとりを仕切り直しますか？")){
-                return;
-            }
-            const response = await fetch("/reset", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({id:getCookieItem("id")})
-            });
-            const list = document.getElementById("historyWord");
-            list.innerHTML = "";
-            setPreviousWord(await response.text());
-        }
-    </script>
+    <script src="index.js"></script>
 </body>
 
 <footer style="text-align: center;" class="footer">
