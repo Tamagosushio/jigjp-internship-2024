@@ -13,9 +13,6 @@
     </div>
     <script>
         document.querySelector("#returnShiritori").onclick = async(event) => {
-            const response = await fetch("/reset", {
-                method: "POST"
-            });
             window.location.href = "./index.html";
         }
     </script>

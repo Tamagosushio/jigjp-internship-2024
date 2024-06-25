@@ -1,9 +1,16 @@
+import re
+p = re.compile("[\u30A1-\u30FF]+")
 
-with open("./private/VDRJ_Ver1_1_Research_Top60894.csv") as f:
+words = []
+with open("./BCCWJ_frequencylist_luw_ver1_0.tsv") as f:
     lines = f.readlines()
     for line in lines:
-        elements = line.split(",")
-        if(elements[16] == "名詞-普通名詞-一般" and 
-           not(elements[14] == "#N/A" or elements[14] == "＊" or elements[15] == "#N/A" or elements[15] == "0")):
-            print(f"{elements[14]},{elements[15]}")
-
+        elements = line.split("\t")
+        if("名詞-普通名詞" in elements[3] or "名詞-固有名詞" in elements[3]):
+            if(p.fullmatch(elements[1])):
+                words.append([elements[1], elements[2]])
+words.sort()
+for l in words:
+    print(f"{l[1]},{l[0]}")
+        
+    

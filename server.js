@@ -1,18 +1,31 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
+
 // 履歴保持
 const historyWord = {};
-// ひらがなのみを含む正規表現
+// ひらがなの正規表現
 const regexHiragana = new RegExp(/[\u3041-\u3096]/g);
+
+// カタカナのみを含む正規表現
+const regexKatakana = new RegExp(/^[\u30A1-\u30FF]+$/);
+
 // 実在する単語リストを読み込む
-const existingWordsText = await Deno.readTextFile("./private/existingWords.csv");
-const existingWords = existingWordsText.split("\n").map((line) => {
+const existingWordsText = await Deno.readTextFile("./private/BCCWJ_frequencylist_suw_ver1_1.tsv");
+const existingWords = existingWordsText.split("\n").map((line, idx) => {
     line = line.replace("\r", "");
-    return line.split(",");
-});
+    const ary = line.split("\t");
+    if(ary[3] === undefined) return undefined;
+    if((ary[3].includes("名詞-普通名詞") || ary[3].includes("名詞-固有名詞-地名")) && regexKatakana.test(ary[1])){
+        return [ary[1], ary[2]];
+    }else{
+        return undefined;
+    }
+}).filter((ele) => {return ele;}).toSorted();
+
 // 変数を定義して初期化
 const previousWordIdx = {};
 initialize()
+
 
 // 初期化
 function initialize(id){
@@ -30,19 +43,29 @@ function setPreviousWordIdx(id, num){
 }
 // 表示用の単語を取得
 function getPreviousWordDisplay(id){
-    return existingWords[previousWordIdx[id]][0];
+    return existingWords[previousWordIdx[id]][1];
 }
 // 内部用の単語を取得
 function getPreviousWord(id){
-    return existingWords[previousWordIdx[id]][1];
+    return existingWords[previousWordIdx[id]][0];
 }
 
-// 入力した単語が存在するか
+// 入力した単語が存在するかをめぐる式二分探索
 function findWordIndex(str){
     str = hiraToKana(str);
-    return existingWords.findIndex((ary) => {
-        return ary[1] === str;
-    });
+    let ng = -1; let ok = existingWords.length;
+    while(Math.abs(ok - ng) > 1){
+        const mid = Math.floor((ok+ng) / 2);
+        // console.log(`existingWords[${mid}]=[${existingWords[mid][0]},${existingWords[mid][1]}]`);
+        if(existingWords[mid][0] >= str){
+            ok = mid;
+        }else{
+            ng = mid;
+        }
+    }
+    // console.log(`existingWords[${ok}]=[${existingWords[ok]}]`);
+    if(existingWords[ok][0] === str) return ok;
+    else return -1;
 } 
 
 // エラーレスポンス生成
@@ -99,7 +122,7 @@ function isShiritoriOk(previousWord, nextWord){
     );
 }
 
-
+console.log("Finish initializing");
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
     console.log(`pathname: ${pathname}`);
