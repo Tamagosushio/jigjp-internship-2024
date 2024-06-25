@@ -24,7 +24,7 @@ jobs:
           deno-version: v1.x
 
       - name: Build step
-        run: "unzip ./private/BCCWJ_frequencylist_suw_ver1_0.zip -d ./private"
+        run: "unzip ./private/BCCWJ_frequencylist_suw_ver1_1.zip -d ./private"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
