@@ -1,13 +1,13 @@
 import { serveDir } from "https://deno.land/std@0.223.0/http/file_server.ts";
 
-
-// 履歴保持
-const historyWord = {};
 // ひらがなの正規表現
 const regexHiragana = new RegExp(/[\u3041-\u3096]/g);
-
 // カタカナのみを含む正規表現
 const regexKatakana = new RegExp(/^[\u30A1-\u30FF]+$/);
+
+// 変数定義
+const historyWord = {};
+const previousWordIdx = {};
 
 // 実在する単語リストを読み込む
 const existingWordsText = await Deno.readTextFile("./private/BCCWJ_frequencylist_suw_ver1_1.tsv");
@@ -21,11 +21,6 @@ const existingWords = existingWordsText.split("\n").map((line, idx) => {
         return undefined;
     }
 }).filter((ele) => {return ele;}).toSorted();
-
-// 変数を定義して初期化
-const previousWordIdx = {};
-initialize()
-
 
 // 初期化
 function initialize(id){
@@ -112,6 +107,7 @@ function equalCharKanaHira(c1, c2){
     return c1 === c2;
 }
 
+// しりとりが成立しているかをチェック
 function isShiritoriOk(previousWord, nextWord){
     const previousWordTail = previousWord.slice(-1);
     if(previousWordTail === "ー" || previousWordTail === "―"){
@@ -122,7 +118,12 @@ function isShiritoriOk(previousWord, nextWord){
     );
 }
 
+
+// 初期化
+initialize()
 console.log("Finish initializing");
+
+
 Deno.serve(async (request) => {
     const pathname = new URL(request.url).pathname;
     console.log(`pathname: ${pathname}`);
