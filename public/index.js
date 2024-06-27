@@ -72,6 +72,19 @@ nextWordInput.addEventListener("keydown", (e) => {
     return false;
 });
 
+// postリクエストで得点を取得し、テキストを置き換える
+const pointDisplay = document.querySelector("#pointDisplay");
+async function postPoint(){
+    const response = await fetch("/point", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            id: getCookieItem("id")
+        })
+    });
+    pointDisplay.innerText = `POINT: ${await response.text()}`;
+}
+
 // 送信ボタンが押された時
 const messageBlock = document.querySelector("#messageBlock");
 document.querySelector("#nextWordSendButton").onclick = async(event) => {
@@ -82,10 +95,12 @@ document.querySelector("#nextWordSendButton").onclick = async(event) => {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             id: getCookieItem("id"),
-            nextWord: nextWordInputText
+            nextWord: nextWordInputText,
+            remainingTime: (timeLimit - timeNow)/1000  // 単位を秒に変換
         })
     });
     if(response.status === 200){
+        await postPoint();
         messageBlock.innerHTML = "";
         timeNow = 0;
     }else{

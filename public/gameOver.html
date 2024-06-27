@@ -9,13 +9,10 @@
 <body>
     <div style="text-align:center;" class="box">
         <h1 class="title is-1">Game Over</h1>
+        <h2 id="pointResult" class="title is-3"></h2>
         <button id="returnShiritori" class="button is-success is-medium">しりとりに戻る</button>
     </div>
-    <script>
-        document.querySelector("#returnShiritori").onclick = async(event) => {
-            window.location.href = "./index.html";
-        }
-    </script>
+    <script src="./gameOver.js"></script>
 </body>
 
 </html>
