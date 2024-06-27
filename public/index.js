@@ -119,5 +119,6 @@ document.querySelector("#resetSendButton").onclick = async(event) => {
     });
     const list = document.getElementById("historyWord");
     list.innerHTML = "";
+    timeNow = 0;
     setPreviousWord(await response.text());
 }
