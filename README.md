@@ -9,7 +9,7 @@
 
 ## Requirement
 - Deno v1.44.4
-- Bulma v1.0.0
+- Bulma v1.0.1
 
 ## Usage
 1. リポジトリをクローン
